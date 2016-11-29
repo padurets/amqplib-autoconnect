@@ -1,2 +1,2 @@
 require('babel-core/register');
-require('./amqplib-autoconnect');
+require('./amqplib-recon');

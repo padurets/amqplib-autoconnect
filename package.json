@@ -1,24 +1,26 @@
 {
-  "name": "amqplib-autoconnect",
+  "name": "amqplib-recon",
   "version": "0.0.1",
-  "description": "",
+  "description": "amqplib auto reconnection",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/padurets/amqplib-autoconnect.git"
+    "url": "git+https://github.com/padurets/amqplib-recon.git"
   },
   "keywords": [
-    "amqp"
+    "amqp",
+    "amqplib",
+    "rabbitmq"
   ],
   "author": "Sergey Padurets",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/padurets/amqplib-autoconnect/issues"
+    "url": "https://github.com/padurets/amqplib-recon/issues"
   },
-  "homepage": "https://github.com/padurets/amqplib-autoconnect#readme",
+  "homepage": "https://github.com/padurets/amqplib-recon#readme",
   "dependencies": {
     "amqplib": "^0.5.1",
     "babel-core": "^6.18.2",

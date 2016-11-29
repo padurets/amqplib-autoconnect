@@ -1,4 +1,4 @@
-# amqplib-autoconnect
+# amqplib-recon
 
 ### Config
 ``` js
@@ -15,7 +15,7 @@ var config = {
 ### Usage example
 
 ``` js
-import Amqp from 'amqplib-autoconnect';
+import Amqp from 'amqplib-recon';
 
 class Storage {
     constructor(cfg){
