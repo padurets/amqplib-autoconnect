@@ -27,7 +27,7 @@ amqp.getChanel()
 
         chn.assertQueue(queue, {durable: true})
             .then(() => {
-                var formatted_data = Buffer.from( JSON.stringify('data') );
+                var formatted_data = Buffer.from( JSON.stringify({message: 'hello'}) );
                 chn.sendToQueue(queue, formatted_data, {persistent: true});
             });
     });
