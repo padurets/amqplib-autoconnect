@@ -1,0 +1,27 @@
+{
+  "name": "amqplib-autoconnect",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/padurets/amqplib-autoconnect.git"
+  },
+  "keywords": [
+    "amqp"
+  ],
+  "author": "Sergey Padurets",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/padurets/amqplib-autoconnect/issues"
+  },
+  "homepage": "https://github.com/padurets/amqplib-autoconnect#readme",
+  "dependencies": {
+    "amqplib": "^0.5.1",
+    "babel-core": "^6.18.2",
+    "babel-preset-es2015": "^6.18.0"
+  }
+}
