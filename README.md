@@ -6,12 +6,10 @@ npm i --save amqplib-recon
 
 ### Default config
 ``` js
-
 var config = {
     url: 'amqp://guest:guest@localhost:5672',
     reconnect_time: 2000
 }
-
 ```
 
 ### Usage example
@@ -31,5 +29,4 @@ amqp.getChanel()
                 chn.sendToQueue(queue, formatted_data, {persistent: true});
             });
     });
-
 ```
