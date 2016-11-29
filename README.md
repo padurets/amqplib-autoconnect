@@ -1,13 +1,15 @@
 # amqplib-recon
 
-### Config
+```
+npm i --save amqplib-recon
+```
+
+### Default config
 ``` js
 
 var config = {
-    server: 'amqp://localhost',
-    user: '',
-    password: '',
-    reconnect_time: 2000,
+    url: 'amqp://guest:guest@localhost:5672',
+    reconnect_time: 2000
 }
 
 ```
@@ -15,19 +17,24 @@ var config = {
 ### Usage example
 
 ``` js
-import Amqp from 'amqplib-recon';
+var Amqp = require('amqplib-recon');
+var amqp = new Amqp(config);
 
-class Storage {
-    constructor(cfg){
-        this.amqp = new Amqp(cfg.amqp);
-    }
+amqp.getChanel()
+    .then((chn) => {
+        // chn is a amqplib channel object
+        var queue = 'queue_name';
 
-    save(queue, data){
-        this.amqp.send(queue, data)
-            .catch(() => {
-                //...
+        chn.assertQueue(queue, {durable: true})
+            .then(() => {
+                var formatted_data = Buffer.from( JSON.stringify(data) );
+                chn.sendToQueue(queue, formatted_data, {persistent: true});
             });
-    }
-}
+    });
 
 ```
+
+### TODO:
+* data as
+    * object
+    * function

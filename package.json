@@ -1,6 +1,6 @@
 {
   "name": "amqplib-recon",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "amqplib auto reconnection",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,7 @@
   "dependencies": {
     "amqplib": "^0.5.1",
     "babel-core": "^6.18.2",
-    "babel-preset-es2015": "^6.18.0"
+    "babel-preset-es2015": "^6.18.0",
+    "extend": "^3.0.0"
   }
 }

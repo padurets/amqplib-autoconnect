@@ -1,45 +1,47 @@
-import amqp from 'amqplib';
+import amqplib from 'amqplib';
+import extend from 'extend';
 
 export default class Amqp {
     constructor(cfg){
-        this.config = cfg;
+        this.config = extend(true, {
+            url: 'amqp://guest:guest@localhost:5672',
+            reconnect_time: 2000
+        }, cfg);
+
         this.is_connected = 0;
         this._connect();
     }
 
-    send(queue, data){
+    getChanel(){
+        var that = this;
+
         return new Promise((resolve, reject) => {
-            if(this.is_connected){
-                this.channel.assertQueue(queue, {durable: true})
-                    .then(() => {
-                        var formatted_data = Buffer.from( JSON.stringify(data) );
-                        this.channel.sendToQueue(queue, formatted_data, {persistent: true});
-                        resolve();
-                    })
-                    .catch((err) => {
-                        reject(data);
-                    });
-            }else{
-                reject(data);
-            }
+            (function getChanel(delay) {
+                if(this.is_connected && this.channel){
+                    resolve(this.channel);
+                }else{
+                    setTimeout(getChanel.bind(that, 1000), delay);
+                }
+            }).call(that, 0);
         });
     }
 
     _connect(){
-        amqp.connect(this.config.server)
+        amqplib.connect(this.config.url)
             .then((connection) => {
                 this.connection = connection;
                 this.is_connected = 1;
 
+
                 connection.createChannel()
                     .then((channel) => {
+                        channel.on('error', this._reconnect.bind(this));
+                        channel.on('close', this._reconnect.bind(this));
                         this.channel = channel;
-                        channel.on('error', this._reconnect);
-                        channel.on('close', this._reconnect);
                     });
             })
             .catch(() => {
-                setTimeout(this._reconnect.bind(this), this.config.reconnect_time);
+                this._reconnect();
             });
     }
 
@@ -51,6 +53,6 @@ export default class Amqp {
 
     _reconnect(){
         this._disconnect();
-        this._connect();
+        setTimeout(this._connect.bind(this), this.config.reconnect_time);
     }
 }

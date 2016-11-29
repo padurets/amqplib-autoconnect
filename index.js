@@ -1,2 +1,2 @@
 require('babel-core/register');
-require('./amqplib-recon');
+module.exports = require('./amqplib-recon');
