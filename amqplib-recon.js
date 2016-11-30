@@ -1,7 +1,7 @@
-import amqplib from 'amqplib';
-import extend from 'extend';
+var amqplib = require('amqplib');
+var extend = require('extend');
 
-export default class Amqp {
+class Amqp {
     constructor(cfg){
         this.config = extend(true, {
             url: 'amqp://guest:guest@localhost:5672',
@@ -56,3 +56,5 @@ export default class Amqp {
         setTimeout(this._connect.bind(this), this.config.reconnect_time);
     }
 }
+
+module.exports = Amqp;
