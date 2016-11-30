@@ -1,28 +1,53 @@
 var amqplib = require('amqplib');
 var extend = require('extend');
+var defaul_config = {
+    url: 'amqp://guest:guest@localhost:5672',
+    timeReconnect: 2000,
+    channel: {
+        mode: 'now', // now, standby
+        timeChecksStatus: 1000,
+        modeHandlers: {
+            now: (resolve, reject) => {
+                this.isConnected()
+                    .then(resolve)
+                    .catch(reject);
+            },
+            standby: (resolve, reject) => {
+                (function recheck(delay) {
+                    this.isConnected()
+                        .then(resolve)
+                        .catch(setTimeout.bind(recheck.bind(that, this.config.channel.timeChecksStatus), delay));
+                }).call(that, 0);
+            }
+        }
+    }
+};
 
 class Amqp {
     constructor(cfg){
-        this.config = extend(true, {
-            url: 'amqp://guest:guest@localhost:5672',
-            reconnect_time: 2000
-        }, cfg);
-
+        this.config = extend(true, defaul_config, cfg);
+        this.channel_stream = null;
         this.is_connected = 0;
         this._connect();
     }
 
-    getChanel(){
-        var that = this;
-
+    channel(opt){
         return new Promise((resolve, reject) => {
-            (function getChanel(delay) {
-                if(this.is_connected && this.channel){
-                    resolve(this.channel);
-                }else{
-                    setTimeout(getChanel.bind(that, 1000), delay);
-                }
-            }).call(that, 0);
+            var cfg = this.config.channel;
+            var modeHandler = cfg.modeHandlers[cfg.mode];
+
+            if(modeHandler){
+                modeHandler.call(this, resolve, reject);
+            }else{
+                throw 'unknow mode';
+            }
+        });
+    }
+
+    isConnected(){
+        return new Promise((resolve, reject) => {
+            var ch = this.channel_stream;
+            (this.is_connected && ch) ? resolve.call(ch, ch) : reject.call(ch, 'not connected');
         });
     }
 
@@ -36,7 +61,7 @@ class Amqp {
                     .then((channel) => {
                         channel.on('error', this._reconnect.bind(this));
                         channel.on('close', this._reconnect.bind(this));
-                        this.channel = channel;
+                        this.channel_stream = channel;
                     })
                     .catch(this._reconnect.bind(this));;
             })
@@ -45,7 +70,7 @@ class Amqp {
 
     _disconnect(){
         if(this.is_connected) this.connection.close();
-        this.channel = null;
+        this.channel_stream = null;
         this.is_connected = 0;
     }
 

@@ -4,32 +4,50 @@
 npm i --save amqplib-recon
 ```
 
-### Default config
-``` js
-var config = {
-    url: 'amqp://guest:guest@localhost:5672',
-    reconnect_time: 2000
-}
-```
-
-### Usage example
+### Simple usage example
 
 ``` js
 var Amqp = require('amqplib-recon');
-var amqp = new Amqp(config);
+var amqp = new Amqp();
+var data = {message: 'hello'};
 
-amqp.getChanel()
-    .then((chn) => {
-        // chn is a amqplib channel object
+amqp.channel()
+    .then(() => {
         var queue = 'queue_name';
-
-        chn.assertQueue(queue, {durable: true})
+        this.assertQueue(queue, {durable: true})
             .then(() => {
-                var formatted_data = Buffer.from( JSON.stringify({message: 'hello'}) );
+                var formatted_data = Buffer.from( JSON.stringify(data) );
                 chn.sendToQueue(queue, formatted_data, {persistent: true});
             });
+    })
+    .catch(() => {
+        // if the channel is not available to store data to another location
     });
 ```
+## Configure
 
-### TODO:
-* reconnect event
+### Default config
+``` js
+var defaul_config = {
+    url: 'amqp://guest:guest@localhost:5672',
+    timeReconnect: 2000,
+    channel: {
+        mode: 'now', // is key modeHandlers
+        timeChecksStatus: 1000,
+        modeHandlers: {
+            now: (resolve, reject) => {
+                this.isConnected()
+                    .then(resolve)
+                    .catch(reject);
+            },
+            standby: (resolve, reject) => {
+                (function channel(delay) {
+                    this.isConnected()
+                        .then(resolve)
+                        .catch(setTimeout.bind(channel.bind(that, this.config.channel.timeChecksStatus), delay));
+                }).call(that, 0);
+            }
+        }
+    }
+};
+```
