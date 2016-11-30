@@ -23,8 +23,25 @@ var defaul_config = {
                 }).call(this, 0);
             }
         }
+    },
+    queueOptions: {
+        durable: true
+    },
+    publishOptions: {
+        persistent: true
     }
 };
+
+
+function errorObj(code, data, info) {
+    return {
+        error: {
+            code: code,
+            info: info
+        },
+        data: data
+    };
+}
 
 class Amqp {
     constructor(cfg){
@@ -34,15 +51,38 @@ class Amqp {
         this._connect();
     }
 
-    channel(opt){
-        var cfg = extend({}, this.config.channel, opt);
-        var modeHandler = cfg.modeHandlers[cfg.mode];
+    channel(cfg){
+        var defaul_cfg = this.config.channel;
+        var config = (typeof cfg === 'object') ? extend({}, defaul_cfg, cfg) : defaul_cfg;
+        var modeHandler = config.modeHandlers[config.mode];
 
         return new Promise((resolve, reject) => {
             if(typeof modeHandler === 'function'){
                 modeHandler.call(this, resolve, reject);
             }else{
                 throw 'unknow mode';
+            }
+        });
+    }
+
+    publish(q, data, ch_cfg){
+        var queue = !!q ? q : !!this.config.queue ? this.config.queue : null;
+
+        return new Promise((resolve, reject) => {
+            if(typeof queue === 'string'){
+                this.channel(ch_cfg)
+                    .then((ch) => {
+                        ch.assertQueue(queue, this.config.queueOptions)
+                            .then(() => {
+                                ch.sendToQueue(queue, Buffer.from(data), this.config.publishOptions);
+                                ch.waitForConfirms()
+                                    .then(resolve)
+                                    .catch((err) => { reject( errorObj(4, data, err) ) });
+                            });
+                    })
+                    .catch((err) => { reject( errorObj(2, data, err) ) });
+            }else{
+                reject( errorObj(1, data, 'incorrect queue name') );
             }
         });
     }
