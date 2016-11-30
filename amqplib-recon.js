@@ -32,17 +32,15 @@ class Amqp {
                 this.connection = connection;
                 this.is_connected = 1;
 
-
-                connection.createChannel()
+                connection.createConfirmChannel()
                     .then((channel) => {
                         channel.on('error', this._reconnect.bind(this));
                         channel.on('close', this._reconnect.bind(this));
                         this.channel = channel;
-                    });
+                    })
+                    .catch(this._reconnect.bind(this));;
             })
-            .catch(() => {
-                this._reconnect();
-            });
+            .catch(this._reconnect.bind(this));
     }
 
     _disconnect(){
