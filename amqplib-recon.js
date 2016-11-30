@@ -35,10 +35,10 @@ class Amqp {
     }
 
     channel(opt){
-        return new Promise((resolve, reject) => {
-            var cfg = this.config.channel;
-            var modeHandler = cfg.modeHandlers[cfg.mode];
+        var cfg = extend({}, this.config.channel, opt);
+        var modeHandler = cfg.modeHandlers[cfg.mode];
 
+        return new Promise((resolve, reject) => {
             if(typeof modeHandler === 'function'){
                 modeHandler.call(this, resolve, reject);
             }else{
