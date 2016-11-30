@@ -22,7 +22,7 @@ amqp.channel()
             });
     })
     .catch(() => {
-        // if the channel is not available to store data to another location
+        // if the channel is not available do another
     });
 ```
 ## Configure
