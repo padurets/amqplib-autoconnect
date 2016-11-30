@@ -30,3 +30,6 @@ amqp.getChanel()
             });
     });
 ```
+
+### TODO:
+* reconnect event
