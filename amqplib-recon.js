@@ -66,10 +66,9 @@ class Amqp {
     }
 
     publish(q, data, ch_cfg){
-        var queue = !!q ? q : !!this.config.queue ? this.config.queue : null;
-
         return new Promise((resolve, reject) => {
-            if(typeof queue === 'string'){
+            this._validateQueueName(q)
+                .then((queue) => {
                 this.channel(ch_cfg)
                     .then((ch) => {
                         ch.assertQueue(queue, this.config.queueOptions)
@@ -81,8 +80,9 @@ class Amqp {
                             });
                     })
                     .catch((err) => { reject( errorObj(2, data, err) ) });
-            }else{
-                reject( errorObj(1, data, 'incorrect queue name') );
+                })
+                .catch(reject);
+        });
             }
         });
     }
@@ -91,6 +91,17 @@ class Amqp {
         return new Promise((resolve, reject) => {
             var ch = this.channel_stream;
             (this.is_connected && ch) ? resolve.call(ch, ch) : reject.call(ch, 'not connected');
+        });
+    }
+
+    _validateQueueName(q){
+        var queue = !!q ? q : !!this.config.queue ? this.config.queue : null;
+        return new Promise((resolve, reject) => {
+            if(typeof queue === 'string'){
+                resolve(queue);
+            }else{
+                reject( errorObj(1, data, 'incorrect queue name') );
+            }
         });
     }
 
