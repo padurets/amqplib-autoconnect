@@ -7,17 +7,20 @@ var defaul_config = {
         mode: 'now', // now, standby
         timeChecksStatus: 1000,
         modeHandlers: {
-            now: (resolve, reject) => {
+            now: function (resolve, reject) {
                 this.isConnected()
                     .then(resolve)
                     .catch(reject);
             },
-            standby: (resolve, reject) => {
-                (function recheck(delay) {
+            standby: function (resolve, reject) {
+                (function check(delay) {
+                    var next_delay = this.config.channel.timeChecksStatus;
+                    var recheck = check.bind(this, next_delay);
+
                     this.isConnected()
                         .then(resolve)
-                        .catch(setTimeout.bind(recheck.bind(that, this.config.channel.timeChecksStatus), delay));
-                }).call(that, 0);
+                        .catch(setTimeout.bind(this, recheck, delay));
+                }).call(this, 0);
             }
         }
     }
@@ -36,7 +39,7 @@ class Amqp {
             var cfg = this.config.channel;
             var modeHandler = cfg.modeHandlers[cfg.mode];
 
-            if(modeHandler){
+            if(typeof modeHandler === 'function'){
                 modeHandler.call(this, resolve, reject);
             }else{
                 throw 'unknow mode';

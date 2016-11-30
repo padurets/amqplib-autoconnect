@@ -12,7 +12,8 @@ var amqp = new Amqp();
 var data = {message: 'hello'};
 
 amqp.channel()
-    .then(() => {
+    .then((chn) => {
+        // chn (or this) is a amqplib channel object
         var queue = 'queue_name';
         this.assertQueue(queue, {durable: true})
             .then(() => {
@@ -35,17 +36,20 @@ var defaul_config = {
         mode: 'now', // is key modeHandlers
         timeChecksStatus: 1000,
         modeHandlers: {
-            now: (resolve, reject) => {
+            now: function (resolve, reject) {
                 this.isConnected()
                     .then(resolve)
                     .catch(reject);
             },
-            standby: (resolve, reject) => {
-                (function channel(delay) {
+            standby: function (resolve, reject) {
+                (function check(delay) {
+                    var next_delay = this.config.channel.timeChecksStatus;
+                    var recheck = check.bind(this, next_delay);
+
                     this.isConnected()
                         .then(resolve)
-                        .catch(setTimeout.bind(channel.bind(that, this.config.channel.timeChecksStatus), delay));
-                }).call(that, 0);
+                        .catch(setTimeout.bind(this, recheck, delay));
+                }).call(this, 0);
             }
         }
     }
