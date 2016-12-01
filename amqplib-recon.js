@@ -29,6 +29,9 @@ var defaul_config = {
     },
     publish: {
         persistent: true
+    },
+    consume: {
+        noAck: false
     }
 };
 
@@ -70,20 +73,20 @@ class Amqp {
             this._validateQueueName(q)
                 .then((queue) => {
                     this.channel()
-                    .then((ch) => {
+                        .then((ch) => {
                             ch.assertQueue(queue, this.config.queue)
-                            .then(() => {
+                                .then(() => {
                                     ch.sendToQueue(queue, Buffer.from(data), opt);
-                                ch.waitForConfirms()
-                                    .then(resolve)
-                                    .catch((err) => { reject( errorObj(4, data, err) ) });
-                            });
-                    })
-                    .catch((err) => { reject( errorObj(2, data, err) ) });
+                                    ch.waitForConfirms()
+                                        .then(resolve)
+                                        .catch((err) => { reject( errorObj(4, data, err) ) });
+                                });
+                        })
+                        .catch((err) => { reject( errorObj(2, data, err) ) });
                 })
                 .catch(reject);
         });
-            }
+    }
 
     isConnected(){
         return new Promise((resolve, reject) => {
@@ -130,6 +133,57 @@ class Amqp {
         this._disconnect();
         setTimeout(this._connect.bind(this), this.config.reconnect_time);
     }
+
+    consume(q, cfg){
+        var opt = extend({}, this.config.consume, cfg);
+
+        return new Promise((resolve, reject) => {
+            this._validateQueueName(q)
+                .then((queue) => {
+                    this.channel()
+                        .then((chn) => {
+                            chn.get(queue, opt)
+                            .then((msg) => {
+                                var content = msg;
+                                if(msg){
+                                    content = msg.content.toString();
+                                    // if(!opt.noAck){
+                                        // chn.ack(msg);
+                                    // }
+                                }
+
+                                resolve(content)
+                            });
+                        })
+                        .catch((err) => {
+                            reject()
+                        });
+                })
+                .catch(reject);
+        });
+    }
 }
+
+
+
+
+var amqp = new Amqp({
+    channel: {
+        mode: 'standby'
+    }
+});
+
+var x = 0;
+// amqp.consume('consumer')
+//     .then(consumer)
+
+function consumer (msg) {
+    console.log('___'+(x++), msg)
+}
+
+setInterval(() => { amqp.consume('consumer', {noAck: true}).then(consumer) }, 500)
+setInterval(() => { amqp.publish('consumer', 'котлетка '+ new Date().getTime()) }, 300)
+
+// storekeeper
 
 module.exports = Amqp;

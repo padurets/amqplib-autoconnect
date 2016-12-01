@@ -14,6 +14,11 @@ var data = {message: 'hello'};
 // Publisher
 amqp.publish('queue', JSON.stringify(data));
 
+// Consumer
+amqp.consume('queue')
+    .then(function(msg){
+        // operations msg...
+    });
 ```
 
 ### Default config
@@ -23,16 +28,16 @@ var defaul_config = {
     timeReconnect: 2000,
     channel: {
         mode: 'now', // is key modeHandlers
-        timeChecksStatus: 1000,
+        timeCheckStatus: 1000,
         modeHandlers: {
-            now: function (resolve, reject) {
+            now: function(resolve, reject) {
                 this.isConnected()
                     .then(resolve)
                     .catch(reject);
             },
-            standby: function (resolve, reject) {
+            standby: function(resolve, reject) {
                 (function check(delay) {
-                    var next_delay = this.config.channel.timeChecksStatus;
+                    var next_delay = this.config.channel.timeCheckStatus;
                     var recheck = check.bind(this, next_delay);
 
                     this.isConnected()
@@ -92,4 +97,14 @@ amqp.publish('queue', JSON.stringify(data))
     .catch(function(err){
         // fail function
     });
+```
+
+### #.consume( queue, [options] )
+Return Promise. By default ```options``` is taken from the ```defaul_config.consume``` and it has the same model
+##### Examples:
+``` js
+amqp.consume('consumer')
+    .then(function(msg){
+
+    })
 ```
