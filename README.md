@@ -65,9 +65,9 @@ var options = {
 };
 
 var onGetChannel = function(chn) {
-    // chn (or this) is a amqplib channel object
+    // chn is a amqplib channel object
     var queue = 'queue_name';
-    this.assertQueue(queue, {durable: true})
+    chn.assertQueue(queue, {durable: true})
         .then(() => {
             var formatted_data = Buffer.from( JSON.stringify(data) );
             chn.sendToQueue(queue, formatted_data, {persistent: true});
