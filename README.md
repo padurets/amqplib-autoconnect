@@ -11,7 +11,7 @@ var Amqp = require('amqplib-recon');
 var amqp = new Amqp();
 var data = {message: 'hello'};
 
-// Simple publisher
+// Publisher
 amqp.publish('queue', JSON.stringify(data));
 
 ```
@@ -51,11 +51,11 @@ var defaul_config = {
 };
 ```
 
-### #.channel( [channel_options] )
-Get the channel. Return Promise. By default ```channel_options``` is taken from the ```defaul_config.channel``` and it has the same model
+### #.channel( [options] )
+Get the channel. Return Promise. By default ```options``` is taken from the ```defaul_config.channel``` and it has the same model
 ##### Examples:
 ``` js
-var channel_options = {
+var options = {
     mode: 'standby'
 };
 
@@ -70,7 +70,7 @@ var onGetChannel = function(chn) {
 };
 
 // "standby" mode
-amqp.channel(channel_options)
+amqp.channel(options)
     .then(onGetChannel);
 
 // "now" mode (by default)
@@ -81,26 +81,12 @@ amqp.channel()
     });
 ```
 
-### #.publish( queue, content, [channel_options] )
-return Promise
+### #.publish( queue, content, [options] )
+Return Promise. By default ```options``` is taken from the ```defaul_config.publish``` and it has the same model
 ##### Examples:
 ``` js
-var channel_options = {
-    mode: 'custom',
-    modeHandlers: {
-        custom: function (success, fail) {
-            this.isConnected()
-                .then(resolve)
-                .catch(reject);
-            /*
-                other operations
-            */
-        },
-    }
-};
-
-amqp.publish('queue', JSON.stringify(data), channel_options)
-    .then(function(err){
+amqp.publish('queue', JSON.stringify(data))
+    .then(function(){
         // success function
     })
     .catch(function(err){

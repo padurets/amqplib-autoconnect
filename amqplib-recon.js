@@ -5,7 +5,7 @@ var defaul_config = {
     timeReconnect: 2000,
     channel: {
         mode: 'now', // now, standby
-        timeChecksStatus: 1000,
+        timeCheckStatus: 1000,
         modeHandlers: {
             now: function (resolve, reject) {
                 this.isConnected()
@@ -14,7 +14,7 @@ var defaul_config = {
             },
             standby: function (resolve, reject) {
                 (function check(delay) {
-                    var next_delay = this.config.channel.timeChecksStatus;
+                    var next_delay = this.config.channel.timeCheckStatus;
                     var recheck = check.bind(this, next_delay);
 
                     this.isConnected()
@@ -24,14 +24,13 @@ var defaul_config = {
             }
         }
     },
-    queueOptions: {
+    queue: {
         durable: true
     },
-    publishOptions: {
+    publish: {
         persistent: true
     }
 };
-
 
 function errorObj(code, data, info) {
     return {
@@ -52,9 +51,8 @@ class Amqp {
     }
 
     channel(cfg){
-        var defaul_cfg = this.config.channel;
-        var config = (typeof cfg === 'object') ? extend({}, defaul_cfg, cfg) : defaul_cfg;
-        var modeHandler = config.modeHandlers[config.mode];
+        var opt = extend({}, this.config.channel, cfg);
+        var modeHandler = opt.modeHandlers[opt.mode];
 
         return new Promise((resolve, reject) => {
             if(typeof modeHandler === 'function'){
@@ -65,15 +63,17 @@ class Amqp {
         });
     }
 
-    publish(q, data, ch_cfg){
+    publish(q, data, cfg){
+        var opt = extend({}, this.config.publish, cfg);
+
         return new Promise((resolve, reject) => {
             this._validateQueueName(q)
                 .then((queue) => {
-                this.channel(ch_cfg)
+                    this.channel()
                     .then((ch) => {
-                        ch.assertQueue(queue, this.config.queueOptions)
+                            ch.assertQueue(queue, this.config.queue)
                             .then(() => {
-                                ch.sendToQueue(queue, Buffer.from(data), this.config.publishOptions);
+                                    ch.sendToQueue(queue, Buffer.from(data), opt);
                                 ch.waitForConfirms()
                                     .then(resolve)
                                     .catch((err) => { reject( errorObj(4, data, err) ) });
@@ -84,8 +84,6 @@ class Amqp {
                 .catch(reject);
         });
             }
-        });
-    }
 
     isConnected(){
         return new Promise((resolve, reject) => {
