@@ -164,26 +164,4 @@ class Amqp {
     }
 }
 
-
-
-
-var amqp = new Amqp({
-    channel: {
-        mode: 'standby'
-    }
-});
-
-var x = 0;
-// amqp.consume('consumer')
-//     .then(consumer)
-
-function consumer (msg) {
-    console.log('___'+(x++), msg)
-}
-
-setInterval(() => { amqp.consume('consumer', {noAck: true}).then(consumer) }, 500)
-setInterval(() => { amqp.publish('consumer', 'котлетка '+ new Date().getTime()) }, 300)
-
-// storekeeper
-
 module.exports = Amqp;
