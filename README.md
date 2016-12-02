@@ -9,15 +9,14 @@ npm i --save amqplib-recon
 ``` js
 var Amqp = require('amqplib-recon');
 var amqp = new Amqp();
-var data = {message: 'hello'};
 
 // Publisher
-amqp.publish('queue', JSON.stringify(data));
+amqp.publish('queue', 'string');
 
 // Consumer
 amqp.consume('queue')
-    .then(function(msg){
-        // operations msg...
+    .then(function(res){
+        console.log(res.msg);
     });
 ```
 
@@ -68,6 +67,10 @@ var options = {
     mode: 'standby'
 };
 
+var data = {
+    message: 'hello'
+};
+
 var onGetChannel = function(chn) {
     // chn is a amqplib channel object
     var queue = 'queue_name';
@@ -94,6 +97,10 @@ amqp.channel()
 Return Promise. By default ```options``` is taken from the ```defaul_config.publish``` and it has the same model
 ##### Examples:
 ``` js
+var data = {
+    message: 'hello'
+};
+
 amqp.publish('queue', JSON.stringify(data))
     .then(function(){
         // success function
