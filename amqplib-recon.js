@@ -48,14 +48,14 @@ function errorObj(code, data, info) {
 
 class Amqp {
     constructor(cfg){
-        this.config = extend(true, defaul_config, cfg);
+        this.config = extend(true, {}, defaul_config, cfg);
         this.channel_stream = null;
         this.is_connected = 0;
         this._connect();
     }
 
     channel(cfg){
-        var opt = extend({}, this.config.channel, cfg);
+        var opt = extend(true, {}, this.config.channel, cfg);
         var modeHandler = opt.modeHandlers[opt.mode];
 
         return new Promise((resolve, reject) => {
@@ -68,7 +68,7 @@ class Amqp {
     }
 
     publish(q, data, cfg){
-        var opt = extend({}, this.config.publish, cfg);
+        var opt = extend(true, {}, this.config.publish, cfg);
 
         return new Promise((resolve, reject) => {
             this._validateQueueName(q)
@@ -90,7 +90,7 @@ class Amqp {
     }
 
     consume(q, cfg){
-        var opt = extend({}, this.config.consume, cfg);
+        var opt = extend(true, {}, this.config.consume, cfg);
 
         return new Promise((resolve, reject) => {
             this._validateQueueName(q)
