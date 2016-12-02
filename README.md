@@ -47,11 +47,15 @@ var defaul_config = {
             }
         }
     },
-    queueOptions: {
+    queue: {
         durable: true
     },
-    publishOptions: {
+    publish: {
         persistent: true
+    },
+    consume: {
+        noAck: false,
+        ackByHand: false
     }
 };
 ```
@@ -103,8 +107,17 @@ amqp.publish('queue', JSON.stringify(data))
 Return Promise. By default ```options``` is taken from the ```defaul_config.consume``` and it has the same model
 ##### Examples:
 ``` js
-amqp.consume('consumer')
-    .then(function(msg){
+var options = {
+    ackByHand: true
+};
 
+amqp.consume('consumer', options)
+    .then(function(res){
+        var ack = res.ack;
+        console.log(res.msg);
+
+        if(ack){
+            ack();
+        }
     })
 ```

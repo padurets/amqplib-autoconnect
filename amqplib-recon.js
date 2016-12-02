@@ -31,7 +31,8 @@ var defaul_config = {
         persistent: true
     },
     consume: {
-        noAck: false
+        noAck: false,
+        ackByHand: false
     }
 };
 
@@ -88,6 +89,47 @@ class Amqp {
         });
     }
 
+    consume(q, cfg){
+        var opt = extend({}, this.config.consume, cfg);
+
+        return new Promise((resolve, reject) => {
+            this._validateQueueName(q)
+                .then((queue) => {
+                    this.channel()
+                        .then((chn) => {
+                            chn.get(queue, opt)
+                            .then((msg) => {
+                                var ack = null;
+                                var msg_string = false;
+                                var res = {};
+
+                                if(msg){
+                                    msg_string = msg.content.toString();
+
+                                    if(!opt.noAck){
+                                        ack = chn.ack.bind(chn, msg);
+
+                                        if(!opt.ackByHand){
+                                            ack();
+                                            ack = null;
+                                        }
+                                    }
+                                }
+
+                                resolve({
+                                    msg: msg_string,
+                                    ack: ack
+                                });
+                            });
+                        })
+                        .catch((err) => {
+                            reject()
+                        });
+                })
+                .catch(reject);
+        });
+    }
+
     isConnected(){
         return new Promise((resolve, reject) => {
             var ch = this.channel_stream;
@@ -132,35 +174,6 @@ class Amqp {
     _reconnect(){
         this._disconnect();
         setTimeout(this._connect.bind(this), this.config.reconnect_time);
-    }
-
-    consume(q, cfg){
-        var opt = extend({}, this.config.consume, cfg);
-
-        return new Promise((resolve, reject) => {
-            this._validateQueueName(q)
-                .then((queue) => {
-                    this.channel()
-                        .then((chn) => {
-                            chn.get(queue, opt)
-                            .then((msg) => {
-                                var content = msg;
-                                if(msg){
-                                    content = msg.content.toString();
-                                    // if(!opt.noAck){
-                                        // chn.ack(msg);
-                                    // }
-                                }
-
-                                resolve(content)
-                            });
-                        })
-                        .catch((err) => {
-                            reject()
-                        });
-                })
-                .catch(reject);
-        });
     }
 }
 
