@@ -35,12 +35,18 @@ var defaul_config = {
         ackByHand: false
     }
 };
+var errors = {
+    1: 'unknow mode',
+    2: 'published messages not have been confirmed',
+    3: 'not connected',
+    4: 'incorrect queue name',
+};
 
-function errorObj(code, data, info) {
+function errInfo(code, data) {
     return {
         error: {
             code: code,
-            info: info
+            message: errors[code] ? errors[code] : 'unknow error'
         },
         data: data
     };
@@ -62,7 +68,7 @@ class Amqp {
             if(typeof modeHandler === 'function'){
                 modeHandler.call(this, resolve, reject);
             }else{
-                throw 'unknow mode';
+                reject( errInfo(1) );
             }
         });
     }
@@ -80,10 +86,10 @@ class Amqp {
                                     ch.sendToQueue(queue, Buffer.from(data), opt);
                                     ch.waitForConfirms()
                                         .then(resolve)
-                                        .catch((err) => { reject( errorObj(4, data, err) ) });
+                                        .catch((err) => { reject( errInfo(2, err) ) });
                                 });
                         })
-                        .catch((err) => { reject( errorObj(2, data, err) ) });
+                        .catch(reject);
                 })
                 .catch(reject);
         });
@@ -98,33 +104,31 @@ class Amqp {
                     this.channel()
                         .then((chn) => {
                             chn.get(queue, opt)
-                            .then((msg) => {
-                                var ack = null;
-                                var msg_string = false;
-                                var res = {};
+                                .then((msg) => {
+                                    var ack = null;
+                                    var msg_string = false;
+                                    var res = {};
 
-                                if(msg){
-                                    msg_string = msg.content.toString();
+                                    if(msg){
+                                        msg_string = msg.content.toString();
 
-                                    if(!opt.noAck){
-                                        ack = chn.ack.bind(chn, msg);
+                                        if(!opt.noAck){
+                                            ack = chn.ack.bind(chn, msg);
 
-                                        if(!opt.ackByHand){
-                                            ack();
-                                            ack = null;
+                                            if(!opt.ackByHand){
+                                                ack();
+                                                ack = null;
+                                            }
                                         }
                                     }
-                                }
 
-                                resolve({
-                                    msg: msg_string,
-                                    ack: ack
+                                    resolve({
+                                        msg: msg_string,
+                                        ack: ack
+                                    });
                                 });
-                            });
                         })
-                        .catch((err) => {
-                            reject()
-                        });
+                        .catch(reject);
                 })
                 .catch(reject);
         });
@@ -133,17 +137,17 @@ class Amqp {
     isConnected(){
         return new Promise((resolve, reject) => {
             var ch = this.channel_stream;
-            (this.is_connected && ch) ? resolve.call(ch, ch) : reject.call(ch, 'not connected');
+            (this.is_connected && ch) ? resolve.call(ch, ch) : reject.call(ch, errInfo(3));
         });
     }
 
     _validateQueueName(q){
-        var queue = !!q ? q : !!this.config.queue ? this.config.queue : null;
         return new Promise((resolve, reject) => {
+            var queue = !!q ? q : !!this.config.queue ? this.config.queue : null;
             if(typeof queue === 'string'){
                 resolve(queue);
             }else{
-                reject( errorObj(1, data, 'incorrect queue name') );
+                reject( errInfo(4, queue) );
             }
         });
     }
