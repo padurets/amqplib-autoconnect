@@ -39,14 +39,16 @@ var errors = {
     1: 'unknow mode',
     2: 'published messages not have been confirmed',
     3: 'not connected',
-    4: 'incorrect queue name',
+    4: 'incorrect queue name'
 };
 
 function errInfo(code, data) {
+    var message = errors[code] ? errors[code] : 'unknow error';
+
     return {
         error: {
             code: code,
-            message: errors[code] ? errors[code] : 'unknow error'
+            message: message
         },
         data: data
     };
@@ -61,10 +63,10 @@ class Amqp {
     }
 
     channel(cfg){
-        var opt = extend(true, {}, this.config.channel, cfg);
-        var modeHandler = opt.modeHandlers[opt.mode];
-
         return new Promise((resolve, reject) => {
+            var opt = extend(true, {}, this.config.channel, cfg);
+            var modeHandler = opt.modeHandlers[opt.mode];
+
             if(typeof modeHandler === 'function'){
                 modeHandler.call(this, resolve, reject);
             }else{
@@ -74,9 +76,9 @@ class Amqp {
     }
 
     publish(q, data, cfg){
-        var opt = extend(true, {}, this.config.publish, cfg);
-
         return new Promise((resolve, reject) => {
+            var opt = extend(true, {}, this.config.publish, cfg);
+
             this._validateQueueName(q)
                 .then((queue) => {
                     this.channel()
@@ -96,9 +98,9 @@ class Amqp {
     }
 
     consume(q, cfg){
-        var opt = extend(true, {}, this.config.consume, cfg);
-
         return new Promise((resolve, reject) => {
+            var opt = extend(true, {}, this.config.consume, cfg);
+
             this._validateQueueName(q)
                 .then((queue) => {
                     this.channel()
@@ -107,14 +109,11 @@ class Amqp {
                                 .then((msg) => {
                                     var ack = null;
                                     var msg_string = false;
-                                    var res = {};
 
                                     if(msg){
                                         msg_string = msg.content.toString();
-
                                         if(!opt.noAck){
                                             ack = chn.ack.bind(chn, msg);
-
                                             if(!opt.ackByHand){
                                                 ack();
                                                 ack = null;
@@ -144,6 +143,7 @@ class Amqp {
     _validateQueueName(q){
         return new Promise((resolve, reject) => {
             var queue = !!q ? q : !!this.config.queue ? this.config.queue : null;
+
             if(typeof queue === 'string'){
                 resolve(queue);
             }else{
