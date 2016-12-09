@@ -39,7 +39,8 @@ var errors = {
     1: 'unknow mode',
     2: 'published messages not have been confirmed',
     3: 'not connected',
-    4: 'incorrect queue name'
+    4: 'incorrect queue name',
+    5: 'error when receiving a message'
 };
 
 function errInfo(code, data) {
@@ -125,7 +126,8 @@ class Amqp {
                                         msg: msg_string,
                                         ack: ack
                                     });
-                                });
+                                })
+                                .catch(reject.bind(errInfo(5)));
                         })
                         .catch(reject);
                 })
